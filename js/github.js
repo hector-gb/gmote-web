@@ -12,8 +12,8 @@ const API_BASE = 'https://api.github.com';
 
 /**
  * @typedef {Object} Asset
+ * @property {number} id          - GitHub asset ID
  * @property {string} name        - Filename (e.g. "code.py")
- * @property {string} downloadUrl - Direct download URL
  * @property {number} size        - Size in bytes
  * @property {string} contentType - MIME type
  */
@@ -64,8 +64,8 @@ export async function fetchReleases(perPage = 20) {
     assets: (r.assets ?? [])
       .filter((a) => isPythonAsset(a.name))
       .map((a) => ({
+        id:          a.id,
         name:        a.name,
-        downloadUrl: a.browser_download_url,
         size:        a.size,
         contentType: a.content_type,
       })),
@@ -79,7 +79,10 @@ export async function fetchReleases(perPage = 20) {
  * @returns {Promise<string>}
  */
 export async function downloadAsset(asset) {
-  const res = await fetch(asset.downloadUrl);
+  const url = `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases/assets/${asset.id}`;
+  const res = await fetch(url, {
+    headers: { Accept: 'application/octet-stream' },
+  });
   if (!res.ok) throw new Error(`Failed to download ${asset.name}: ${res.statusText}`);
   return res.text();
 }
