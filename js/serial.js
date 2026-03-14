@@ -68,24 +68,34 @@ export class CircuitPythonDevice {
 
     this.#log('Connected.', 'ok');
 
-    // Interrupt any running script and switch to raw REPL
-    await this.#enterRawRepl();
+    // Interrupt any running script and switch to raw REPL.
+    // Clean up the port if this fails so the next connect() can reopen it.
+    try {
+      await this.#enterRawRepl();
+    } catch (err) {
+      await this.#closePort();
+      throw err;
+    }
   }
 
   async disconnect() {
-    try {
-      await this.#exitRawRepl();
-    } catch (_) { /* best-effort */ }
+    try { await this.#exitRawRepl(); } catch (_) {}
+    await this.#closePort();
+    this.#log('Disconnected.', 'warn');
+  }
 
-    try { this.#reader?.cancel(); } catch (_) {}
+  /** Release all locks and close the port. Safe to call in any state. */
+  async #closePort() {
+    // reader.cancel() MUST be awaited — without await, port.close() races the
+    // lock release and silently fails, leaving the port open for the next connect().
+    try { await this.#reader?.cancel(); } catch (_) {}
+    try { this.#reader?.releaseLock(); } catch (_) {}
     try { this.#writer?.releaseLock(); } catch (_) {}
-    try { await this.#port?.close(); } catch (_) {}
+    try { await this.#port?.close(); }   catch (_) {}
 
     this.#reader = null;
     this.#writer = null;
     this.#port   = null;
-
-    this.#log('Disconnected.', 'warn');
   }
 
   // ─── read file ───────────────────────────────────────────────────────────
@@ -261,6 +271,7 @@ export class CircuitPythonDevice {
   async #drainMs(ms) {
     const deadline = Date.now() + ms;
     while (Date.now() < deadline) {
+      if (!this.#reader) break;
       const remaining = deadline - Date.now();
       const race = await Promise.race([
         this.#reader.read(),
@@ -282,6 +293,7 @@ export class CircuitPythonDevice {
     let buf = '';
 
     while (Date.now() < deadline) {
+      if (!this.#reader) throw new Error('Serial port was disconnected.');
       const remaining = deadline - Date.now();
       const { value, done } = await Promise.race([
         this.#reader.read(),
