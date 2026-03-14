@@ -171,18 +171,21 @@ export class CircuitPythonDevice {
   // ─── raw REPL helpers ────────────────────────────────────────────────────
 
   async #enterRawRepl() {
-    // Drain any stale bytes (e.g. the trailing '>' left by a previous rawExec).
-    // Without this, #readUntilMarker finds that leftover '>' and returns early,
-    // causing the real CTRL_A banner to leak into the next rawExec response.
-    await this.#drainMs(50);
+    // Drain any stale bytes (e.g. trailing '>' left by a previous rawExec).
+    await this.#drainMs(100);
 
-    // Interrupt any running script, then request raw REPL mode.
+    // Interrupt any running script.
     await this.#write(CTRL_C + CTRL_C);
+    await sleep(100);
+
+    // Exit raw REPL first (CTRL_B is a no-op in friendly REPL).
+    // This forces a clean state transition so CTRL_A always emits the
+    // full banner — if we're already in raw REPL, CTRL_A alone may not
+    // re-send "raw REPL; CTRL-B to exit" and the marker check times out.
+    await this.#write(CTRL_B);
     await sleep(100);
     await this.#write(CTRL_A);
 
-    // Wait for the raw REPL banner — not just '>' (which can appear as a stale
-    // prompt or CTRL_C echo) but the actual confirmation string from CircuitPython.
     await this.#readUntilMarker('raw REPL; CTRL-B to exit', 3000);
     this.#log('Raw REPL ready.', 'info');
   }
