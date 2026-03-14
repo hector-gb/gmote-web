@@ -64,8 +64,8 @@ export async function fetchReleases(perPage = 20) {
     assets: (r.assets ?? [])
       .filter((a) => isPythonAsset(a.name))
       .map((a) => ({
-        id:          a.id,
         name:        a.name,
+        downloadUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${r.tag_name}/${a.name}`,
         size:        a.size,
         contentType: a.content_type,
       })),
@@ -79,10 +79,7 @@ export async function fetchReleases(perPage = 20) {
  * @returns {Promise<string>}
  */
 export async function downloadAsset(asset) {
-  const url = `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases/assets/${asset.id}`;
-  const res = await fetch(url, {
-    headers: { Accept: 'application/octet-stream' },
-  });
+  const res = await fetch(asset.downloadUrl);
   if (!res.ok) throw new Error(`Failed to download ${asset.name}: ${res.statusText}`);
   return res.text();
 }
