@@ -121,6 +121,9 @@ export class CircuitPythonDevice {
   async flashFile(content, destPath = '/code.py') {
     if (!this.connected) throw new Error('Not connected.');
 
+    // Re-enter raw REPL in case state was lost since connect
+    await this.#enterRawRepl();
+
     const bytes = this.#encoder.encode(content);
     const total = bytes.length;
 
