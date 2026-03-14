@@ -242,6 +242,7 @@ async function onFlashClick() {
     });
     await device.flashFile(meta, VERSION_PATH);
     appendLog(`Version metadata written to ${VERSION_PATH}.`, 'info');
+    await device.softReset();
 
     showInstalledVersion({ tag: release.tag, variant: variant?.label ?? null, sha256 });
   } catch (err) {

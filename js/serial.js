@@ -142,14 +142,17 @@ export class CircuitPythonDevice {
       this.#progress(Math.round((written / total) * 90)); // 0-90 % for data
     }
 
-    // Close & reload
+    // Close file
     await this.#rawExec(`f.close()`);
-    this.#log('File written. Reloading…', 'info');
-
-    await this.#rawExec(`import supervisor;supervisor.reload()`);
 
     this.#progress(100);
     this.#log(`Done! ${destPath} flashed successfully.`, 'ok');
+  }
+
+  /** Soft-reset the device to run the newly flashed code. */
+  async softReset() {
+    this.#log('Reloading device…', 'info');
+    await this.#rawExec(`import supervisor;supervisor.reload()`);
   }
 
   // ─── raw REPL helpers ────────────────────────────────────────────────────
