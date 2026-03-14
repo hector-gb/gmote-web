@@ -161,14 +161,19 @@ export class CircuitPythonDevice {
   // ─── raw REPL helpers ────────────────────────────────────────────────────
 
   async #enterRawRepl() {
+    // Drain any stale bytes (e.g. the trailing '>' left by a previous rawExec).
+    // Without this, #readUntilMarker finds that leftover '>' and returns early,
+    // causing the real CTRL_A banner to leak into the next rawExec response.
+    await this.#drainMs(50);
+
     // Interrupt any running script, then request raw REPL mode.
     await this.#write(CTRL_C + CTRL_C);
     await sleep(100);
     await this.#write(CTRL_A);
 
-    // Wait for the raw REPL prompt '>' to confirm we're actually in raw REPL.
-    // A fixed-time drain is unreliable — the prompt can arrive after the window.
-    await this.#readUntilMarker('>', 3000);
+    // Wait for the raw REPL banner — not just '>' (which can appear as a stale
+    // prompt or CTRL_C echo) but the actual confirmation string from CircuitPython.
+    await this.#readUntilMarker('raw REPL; CTRL-B to exit', 3000);
     this.#log('Raw REPL ready.', 'info');
   }
 
@@ -246,6 +251,23 @@ export class CircuitPythonDevice {
     }
 
     return this.#decoder.decode(Uint8Array.from(chunks));
+  }
+
+  /**
+   * Read and discard all available bytes for up to `ms` milliseconds.
+   * Used to flush stale data (e.g. trailing '>' prompts) before entering raw REPL.
+   * @param {number} ms
+   */
+  async #drainMs(ms) {
+    const deadline = Date.now() + ms;
+    while (Date.now() < deadline) {
+      const remaining = deadline - Date.now();
+      const race = await Promise.race([
+        this.#reader.read(),
+        sleep(remaining).then(() => null),
+      ]);
+      if (!race || race.done) break;
+    }
   }
 
   /**
