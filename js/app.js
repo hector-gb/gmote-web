@@ -245,6 +245,7 @@ async function onFlashClick() {
     await device.softReset();
 
     showInstalledVersion({ tag: release.tag, variant: variant?.label ?? null, sha256 });
+    appendLog('Power cycle the device (unplug and replug) to fully initialize the new firmware.', 'warn');
   } catch (err) {
     appendLog(err.message, 'err');
     // If the device disconnected mid-flash, update UI
