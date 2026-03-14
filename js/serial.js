@@ -185,12 +185,14 @@ export class CircuitPythonDevice {
     // Response: "OK" <stdout> \x04 <stderr> \x04
     const response = await this.#readUntilDoubleCtrlD(EXEC_TIMEOUT_MS);
 
-    if (!response.startsWith('OK')) {
+    // Strip any leading prompt characters ('>' ) before the OK marker
+    const stripped = response.replace(/^[>\s]*/, '');
+    if (!stripped.startsWith('OK')) {
       throw new Error(`Unexpected raw-REPL response: ${JSON.stringify(response.slice(0, 80))}`);
     }
 
     // Split on the first \x04 (end of stdout) then get stderr
-    const afterOk   = response.slice(2);
+    const afterOk   = stripped.slice(2);
     const parts     = afterOk.split('\x04');
     const stderr    = parts[1] ?? '';
 
