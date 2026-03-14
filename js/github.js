@@ -65,7 +65,7 @@ export async function fetchReleases(perPage = 20) {
       .filter((a) => isPythonAsset(a.name))
       .map((a) => ({
         name:        a.name,
-        downloadUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${r.tag_name}/${a.name}`,
+        downloadUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${r.tag_name}/${a.name}`,
         size:        a.size,
         contentType: a.content_type,
       })),
