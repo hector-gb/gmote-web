@@ -161,14 +161,14 @@ export class CircuitPythonDevice {
   // ─── raw REPL helpers ────────────────────────────────────────────────────
 
   async #enterRawRepl() {
-    // Interrupt, then switch to raw REPL. Send twice for reliability.
+    // Interrupt any running script, then request raw REPL mode.
     await this.#write(CTRL_C + CTRL_C);
     await sleep(100);
     await this.#write(CTRL_A);
-    await sleep(200);
 
-    // Drain any buffered response; we just need to be in raw-REPL state.
-    await this.#drainMs(300);
+    // Wait for the raw REPL prompt '>' to confirm we're actually in raw REPL.
+    // A fixed-time drain is unreliable — the prompt can arrive after the window.
+    await this.#readUntilMarker('>', 3000);
     this.#log('Raw REPL ready.', 'info');
   }
 
@@ -249,18 +249,30 @@ export class CircuitPythonDevice {
   }
 
   /**
-   * Read and discard everything available for `ms` milliseconds.
-   * @param {number} ms
+   * Read until the accumulated text contains `marker`, or the timeout elapses.
+   * Discards all received bytes — used to confirm raw REPL entry.
+   *
+   * @param {string} marker
+   * @param {number} timeoutMs
    */
-  async #drainMs(ms) {
-    const deadline = Date.now() + ms;
+  async #readUntilMarker(marker, timeoutMs) {
+    const deadline = Date.now() + timeoutMs;
+    let buf = '';
+
     while (Date.now() < deadline) {
-      const race = await Promise.race([
+      const remaining = deadline - Date.now();
+      const { value, done } = await Promise.race([
         this.#reader.read(),
-        sleep(ms).then(() => null),
+        sleep(remaining).then(() => ({ value: null, done: true })),
       ]);
-      if (!race || race.done) break;
+
+      if (done || !value) break;
+
+      buf += this.#decoder.decode(value);
+      if (buf.includes(marker)) return;
     }
+
+    throw new Error('Timed out waiting for raw REPL prompt. Is the device running CircuitPython?');
   }
 
   // ─── helpers ─────────────────────────────────────────────────────────────
