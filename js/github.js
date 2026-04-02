@@ -20,27 +20,30 @@ const API_BASE = 'https://api.github.com';
 
 /**
  * @typedef {Object} Release
- * @property {string}  tag         - e.g. "v1.2.3"
- * @property {string}  name        - Human-readable release title
- * @property {string}  publishedAt - ISO 8601 date string
- * @property {string}  htmlUrl     - Link to the GitHub release page
- * @property {string}  body        - Release notes (raw markdown from GitHub)
- * @property {Asset[]} assets      - Downloadable files attached to the release
+ * @property {string}      tag              - e.g. "v1.2.3"
+ * @property {string}      name             - Human-readable release title
+ * @property {string}      publishedAt      - ISO 8601 date string
+ * @property {string}      htmlUrl          - Link to the GitHub release page
+ * @property {string}      body             - Release notes (raw markdown from GitHub)
+ * @property {Asset[]}     assets           - Downloadable .py files in the release folder
+ * @property {string|null} sourceVersionUrl - Download URL for source-sha.txt, or null
  */
 
 /**
  * Returns all releases for the configured repo, newest first.
- * Filters to assets that look like CircuitPython source files (*.py).
+ * File listings come from the Contents API using the release tag as both the
+ * ref and the folder name — no release asset uploads required.
  *
  * @param {number} [perPage=20]
  * @returns {Promise<Release[]>}
  */
 export async function fetchReleases(perPage = 20) {
-  const url = `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=${perPage}`;
+  const headers = { Accept: 'application/vnd.github+json' };
 
-  const res = await fetch(url, {
-    headers: { Accept: 'application/vnd.github+json' },
-  });
+  const res = await fetch(
+    `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=${perPage}`,
+    { headers },
+  );
 
   if (!res.ok) {
     const remaining = res.headers.get('x-ratelimit-remaining');
@@ -53,22 +56,40 @@ export async function fetchReleases(perPage = 20) {
   }
 
   /** @type {any[]} */
-  const data = await res.json();
+  const releases = await res.json();
 
-  return data.map((r) => ({
-    tag:         r.tag_name,
-    name:        r.name || r.tag_name,
-    publishedAt: r.published_at,
-    htmlUrl:     r.html_url,
-    body:        r.body ?? '',
-    assets: (r.assets ?? [])
-      .filter((a) => isPythonAsset(a.name))
-      .map((a) => ({
-        name:        a.name,
-        downloadUrl: `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${r.tag_name}/${a.name}`,
-        size:        a.size,
-        contentType: a.content_type,
-      })),
+  // Fetch folder contents for each release in parallel
+  return Promise.all(releases.map(async (r) => {
+    const tag = r.tag_name;
+
+    // List files in the tag-named folder, pinned to that tag's commit
+    let files = [];
+    try {
+      const contentsRes = await fetch(
+        `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${tag}?ref=${tag}`,
+        { headers },
+      );
+      if (contentsRes.ok) files = await contentsRes.json();
+    } catch (_) { /* leave files empty on network error */ }
+
+    const shaFile = files.find((f) => f.name === 'source-sha.txt');
+
+    return {
+      tag,
+      name:        r.name || tag,
+      publishedAt: r.published_at,
+      htmlUrl:     r.html_url,
+      body:        r.body ?? '',
+      assets: files
+        .filter((f) => isPythonAsset(f.name))
+        .map((f) => ({
+          name:        f.name,
+          downloadUrl: f.download_url,  // raw URL pinned to the tag ref
+          size:        f.size,
+          contentType: 'text/x-python',
+        })),
+      sourceVersionUrl: shaFile?.download_url ?? null,
+    };
   }));
 }
 

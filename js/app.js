@@ -228,23 +228,31 @@ async function onFlashClick() {
     const content = await downloadAsset(asset);
     appendLog(`Download complete (${formatBytes(content.length)} chars). Flashing…`, 'info');
 
-    const sha256  = await computeSHA256(content);
     const variant = VARIANTS.find((v) => v.filename === asset.name);
+
+    // Fetch the source SHA from the release's version.txt sidecar
+    let sourceSha = null;
+    if (release.sourceVersionUrl) {
+      const verText = await fetch(release.sourceVersionUrl).then((r) => r.text());
+      const match = verText.match(/source sha:\s*([0-9a-f]+)/i);
+      sourceSha = match?.[1] ?? null;
+    }
+
     await device.flashFile(content, DEST_PATH);
 
     // Write sidecar metadata so we can read back what's installed
     const meta = JSON.stringify({
-      version: release.tag,
-      asset:   asset.name,
-      variant: variant?.label ?? null,
-      sha256,
-      flashed: new Date().toISOString(),
+      version:   release.tag,
+      asset:     asset.name,
+      variant:   variant?.label ?? null,
+      sourceSha,
+      flashed:   new Date().toISOString(),
     });
     await device.flashFile(meta, VERSION_PATH);
     appendLog(`Version metadata written to ${VERSION_PATH}.`, 'info');
     await device.softReset();
 
-    showInstalledVersion({ tag: release.tag, variant: variant?.label ?? null, sha256 });
+    showInstalledVersion({ tag: release.tag, variant: variant?.label ?? null, sourceSha });
     appendLog('Power cycle the device (unplug and replug) to fully initialize the new firmware.', 'warn');
   } catch (err) {
     appendLog(err.message, 'err');
@@ -268,7 +276,7 @@ async function readInstalledVersion() {
       return;
     }
     const meta = JSON.parse(raw);
-    showInstalledVersion({ tag: meta.version, variant: meta.variant ?? null, sha256: meta.sha256 });
+    showInstalledVersion({ tag: meta.version, variant: meta.variant ?? null, sourceSha: meta.sourceSha ?? null });
     const variantStr = meta.variant ? ` · ${meta.variant}` : '';
     appendLog(`Device has ${meta.version}${variantStr} (flashed ${new Date(meta.flashed).toLocaleString()}).`, 'ok');
   } catch (err) {
@@ -276,23 +284,13 @@ async function readInstalledVersion() {
   }
 }
 
-function showInstalledVersion({ tag, variant, sha256 }) {
+function showInstalledVersion({ tag, variant, sourceSha }) {
   installedTagEl.textContent  = variant ? `${tag} · ${variant}` : tag;
-  installedHashEl.textContent = sha256 ? `sha256:${sha256.slice(0, 12)}…` : '';
-  installedHashEl.title       = sha256 ? `SHA-256: ${sha256}` : '';
+  installedHashEl.textContent = sourceSha ? `source sha: ${sourceSha.slice(0, 12)}…` : '';
+  installedHashEl.title       = sourceSha ? `Source SHA: ${sourceSha}` : '';
   installedBox.classList.remove('hidden');
 }
 
-// ─── crypto ──────────────────────────────────────────────────────────────────
-
-/** Returns lowercase hex SHA-256 of a UTF-8 string. */
-async function computeSHA256(text) {
-  const buf    = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
 
 function setConnectionStatus(connected) {
   statusBadge.textContent = connected ? 'Connected' : 'Disconnected';
