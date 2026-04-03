@@ -26,7 +26,7 @@ const VARIANTS = [
     filename:    'code-usb.py',
     label:       'USB Only',
     badge:       'USB',
-    description: 'Communicates via USB cable only. Smaller binary, no wireless overhead.',
+    description: 'Communicates via USB cable only.',
   },
   {
     filename:    'code-bt.py',
