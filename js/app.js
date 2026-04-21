@@ -233,9 +233,7 @@ async function onFlashClick() {
     // Fetch the source SHA from the release's version.txt sidecar
     let sourceSha = null;
     if (release.sourceVersionUrl) {
-      const verText = await fetch(release.sourceVersionUrl).then((r) => r.text());
-      const match = verText.match(/source sha:\s*([0-9a-f]+)/i);
-      sourceSha = match?.[1] ?? null;
+      sourceSha = await fetch(release.sourceVersionUrl).then((r) => r.text()).then((t) => t.trim()) || null;
     }
 
     await device.flashFile(content, DEST_PATH);
