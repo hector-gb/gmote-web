@@ -448,6 +448,22 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .btn-download:hover { border-color: var(--accent); color: var(--accent); }
 
+.installer-card--highlight {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.installer-version-match {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
 /* ───────────────────────────────────────────
    Footer
 ─────────────────────────────────────────── */

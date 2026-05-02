@@ -59,9 +59,12 @@ const btnFlash        = q('#btn-flash');
 const progressWrap    = q('#progress-wrap');
 const progressBar     = q('#progress-bar');
 const logEl           = q('#log');
-const installedBox    = q('#installed-version');
-const installedTagEl  = q('#installed-tag');
-const installedHashEl = q('#installed-hash');
+const installedBox       = q('#installed-version');
+const installedTagEl     = q('#installed-tag');
+const installedHashEl    = q('#installed-hash');
+const installerCard      = q('#installer-card');
+const installerDownload  = /** @type {HTMLAnchorElement} */ (q('#installer-download-btn'));
+const installerVerLabel  = q('#installer-version-label');
 
 // ─── state ───────────────────────────────────────────────────────────────────
 
@@ -132,6 +135,8 @@ function onReleaseChange() {
     releaseMeta.classList.add('hidden');
     releaseBodyEl.classList.add('hidden');
     assetListEl.classList.add('hidden');
+    installerCard.classList.remove('installer-card--highlight');
+    installerVerLabel.classList.add('hidden');
     updateFlashButton();
     return;
   }
@@ -149,6 +154,17 @@ function onReleaseChange() {
     releaseBodyEl.classList.remove('hidden');
   } else {
     releaseBodyEl.classList.add('hidden');
+  }
+
+  // Installer banner
+  if (release.installerUrl) {
+    installerDownload.href = release.installerUrl;
+    installerVerLabel.textContent = `✓ ${release.tag}`;
+    installerVerLabel.classList.remove('hidden');
+    installerCard.classList.add('installer-card--highlight');
+  } else {
+    installerVerLabel.classList.add('hidden');
+    installerCard.classList.remove('installer-card--highlight');
   }
 
   // Variant cards
@@ -234,6 +250,18 @@ async function onFlashClick() {
     let sourceSha = null;
     if (release.sourceVersionUrl) {
       sourceSha = await fetch(release.sourceVersionUrl).then((r) => r.text()).then((t) => t.trim()) || null;
+    }
+
+    // Flash boot.py first (silently — it's tiny and not user-selectable)
+    if (release.bootAsset) {
+      appendLog('Downloading boot.py…', 'info');
+      const bootContent = await downloadAsset(release.bootAsset);
+      appendLog(`Flashing boot.py (${formatBytes(bootContent.length)} bytes)…`, 'info');
+      device.onProgress = null;
+      await device.flashFile(bootContent, '/boot.py');
+      device.onProgress = (pct) => setProgress(pct);
+      appendLog('boot.py flashed.', 'ok');
+      setProgress(0);
     }
 
     await device.flashFile(content, DEST_PATH);

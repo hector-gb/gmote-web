@@ -25,8 +25,10 @@ const API_BASE = 'https://api.github.com';
  * @property {string}      publishedAt      - ISO 8601 date string
  * @property {string}      htmlUrl          - Link to the GitHub release page
  * @property {string}      body             - Release notes (raw markdown from GitHub)
- * @property {Asset[]}     assets           - Downloadable .py files in the release folder
+ * @property {Asset[]}     assets           - Selectable .py variants (excludes boot.py)
+ * @property {Asset|null}  bootAsset        - boot.py asset for this release, or null
  * @property {string|null} sourceVersionUrl - Download URL for source-sha.txt, or null
+ * @property {string|null} installerUrl     - Download URL for gmote-installer.zip, or null
  */
 
 /**
@@ -72,7 +74,16 @@ export async function fetchReleases(perPage = 20) {
       if (contentsRes.ok) files = await contentsRes.json();
     } catch (_) { /* leave files empty on network error */ }
 
-    const shaFile = files.find((f) => f.name === 'source-sha.txt');
+    const shaFile       = files.find((f) => f.name === 'source-sha.txt');
+    const bootFile      = files.find((f) => f.name === 'boot.py');
+    const installerFile = files.find((f) => f.name === 'gmote-installer.zip');
+
+    const toAsset = (f) => ({
+      name:        f.name,
+      downloadUrl: f.download_url,
+      size:        f.size,
+      contentType: 'text/x-python',
+    });
 
     return {
       tag,
@@ -81,14 +92,11 @@ export async function fetchReleases(perPage = 20) {
       htmlUrl:     r.html_url,
       body:        r.body ?? '',
       assets: files
-        .filter((f) => isPythonAsset(f.name))
-        .map((f) => ({
-          name:        f.name,
-          downloadUrl: f.download_url,  // raw URL pinned to the tag ref
-          size:        f.size,
-          contentType: 'text/x-python',
-        })),
-      sourceVersionUrl: shaFile?.download_url ?? null,
+        .filter((f) => isPythonAsset(f.name) && f.name !== 'boot.py')
+        .map(toAsset),
+      bootAsset:        bootFile      ? toAsset(bootFile)              : null,
+      sourceVersionUrl: shaFile       ? shaFile.download_url           : null,
+      installerUrl:     installerFile ? installerFile.download_url     : null,
     };
   }));
 }
