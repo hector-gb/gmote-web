@@ -76,7 +76,7 @@ export async function fetchReleases(perPage = 20) {
 
     const shaFile       = files.find((f) => f.name === 'source-sha.txt');
     const bootFile      = files.find((f) => f.name === 'boot.py');
-    const installerFile = files.find((f) => f.name === 'gmote-installer.zip');
+    const installerFile = files.find((f) => f.name === 'gmote-installer_macOS.zip');
 
     const toAsset = (f) => ({
       name:        f.name,
