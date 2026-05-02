@@ -85,6 +85,12 @@ device.onProgress = (pct) => setProgress(pct);
     btnConnect.disabled = true;
   }
 
+  // Show the installer's own git SHA in the footer
+  fetch('https://api.github.com/repos/hector-gb/gmote-web/commits/main')
+    .then((r) => r.json())
+    .then((d) => { const el = q('#footer-sha'); if (el && d.sha) el.textContent = d.sha.slice(0, 7); })
+    .catch(() => {});
+
   appendLog(`Fetching releases from ${REPO_OWNER}/${REPO_NAME}…`);
   await loadReleases();
 
@@ -156,14 +162,16 @@ function onReleaseChange() {
     releaseBodyEl.classList.add('hidden');
   }
 
-  // Installer banner (elements may not be present in all HTML variants)
+  // Installer banner — update link and state to match the selected release
   if (installerCard && installerDownload && installerVerLabel) {
     if (release.installerUrl) {
       installerDownload.href = release.installerUrl;
-      installerVerLabel.textContent = `✓ ${release.tag}`;
+      installerDownload.removeAttribute('aria-disabled');
+      installerVerLabel.textContent = release.tag;
       installerVerLabel.classList.remove('hidden');
       installerCard.classList.add('installer-card--highlight');
     } else {
+      installerDownload.setAttribute('aria-disabled', 'true');
       installerVerLabel.classList.add('hidden');
       installerCard.classList.remove('installer-card--highlight');
     }

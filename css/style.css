@@ -447,6 +447,15 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 .btn-download:hover { border-color: var(--accent); color: var(--accent); }
+.btn-download[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
+
+.installer-card--highlight { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+
+.installer-version-match {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+}
 
 .installer-card--highlight {
   border-color: var(--accent);

@@ -46,16 +46,18 @@
         </div>
       </section>
 
-      <!-- Mac app installer (one-time setup, independent of firmware version) -->
-      <section class="installer-card">
+      <!-- Mac app installer — link updates to match the selected release -->
+      <section class="installer-card" id="installer-card">
         <div class="installer-card-body">
           <div>
-            <p class="installer-title">Mac Installer <span class="installer-badge">macOS</span></p>
-            <p class="installer-desc">One-time setup. Download <code>gmote-installer_macOS.zip</code>, unzip, and run <code>gmote-installer.sh</code>.</p>
+            <p class="installer-title">
+              Mac Installer <span class="installer-badge">macOS</span>
+              <span id="installer-version-label" class="installer-version-match hidden"></span>
+            </p>
+            <p class="installer-desc">One-time setup. Unzip and run <code>gmote-installer.sh</code>.</p>
           </div>
-          <a class="btn-download"
-             href="https://raw.githubusercontent.com/hector-gb/gmote-releases/main/installers/gmote-installer_macOS.zip"
-             download="gmote-installer_macOS.zip">
+          <a class="btn-download" id="installer-download-btn"
+             href="#" download="gmote-installer_macOS.zip" aria-disabled="true">
             &#8595; Download
           </a>
         </div>
@@ -102,6 +104,7 @@
     <footer>
       <p>Requires Chrome or Edge 89+. &nbsp;·&nbsp;
         <a href="https://github.com/hector-gb/gmote-releases" target="_blank" rel="noopener">GitHub</a>
+        &nbsp;·&nbsp; <span id="footer-sha"></span>
       </p>
     </footer>
   </div>
