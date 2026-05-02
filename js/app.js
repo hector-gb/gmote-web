@@ -135,8 +135,8 @@ function onReleaseChange() {
     releaseMeta.classList.add('hidden');
     releaseBodyEl.classList.add('hidden');
     assetListEl.classList.add('hidden');
-    installerCard.classList.remove('installer-card--highlight');
-    installerVerLabel.classList.add('hidden');
+    installerCard?.classList.remove('installer-card--highlight');
+    installerVerLabel?.classList.add('hidden');
     updateFlashButton();
     return;
   }
@@ -156,15 +156,17 @@ function onReleaseChange() {
     releaseBodyEl.classList.add('hidden');
   }
 
-  // Installer banner
-  if (release.installerUrl) {
-    installerDownload.href = release.installerUrl;
-    installerVerLabel.textContent = `✓ ${release.tag}`;
-    installerVerLabel.classList.remove('hidden');
-    installerCard.classList.add('installer-card--highlight');
-  } else {
-    installerVerLabel.classList.add('hidden');
-    installerCard.classList.remove('installer-card--highlight');
+  // Installer banner (elements may not be present in all HTML variants)
+  if (installerCard && installerDownload && installerVerLabel) {
+    if (release.installerUrl) {
+      installerDownload.href = release.installerUrl;
+      installerVerLabel.textContent = `✓ ${release.tag}`;
+      installerVerLabel.classList.remove('hidden');
+      installerCard.classList.add('installer-card--highlight');
+    } else {
+      installerVerLabel.classList.add('hidden');
+      installerCard.classList.remove('installer-card--highlight');
+    }
   }
 
   // Variant cards
