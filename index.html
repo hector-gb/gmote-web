@@ -16,24 +16,6 @@
       <p class="subtitle">Flash <code>code.py</code> directly to your Gmote</p>
     </header>
 
-    <!-- Mac app installer (version-matched when a release is selected) -->
-    <section class="installer-card" id="installer-card">
-      <div class="installer-card-body">
-        <div>
-          <p class="installer-title">
-            Mac Installer <span class="installer-badge">macOS</span>
-            <span id="installer-version-label" class="installer-version-match hidden"></span>
-          </p>
-          <p class="installer-desc">One-time setup. Download, unzip, and run <code>gmote-installer.sh</code>.</p>
-        </div>
-        <a class="btn-download" id="installer-download-btn"
-           href="https://raw.githubusercontent.com/hector-gb/gmote-releases/main/installers/gmote-installer_macOS.zip"
-           download="gmote-installer.zip">
-          &#8595; Download
-        </a>
-      </div>
-    </section>
-
     <main>
       <!-- Step 1: Select version -->
       <section class="step" id="step-version">
@@ -61,6 +43,21 @@
         <div id="asset-list" class="asset-list hidden">
           <p class="label">Choose a build:</p>
           <div id="asset-options"></div>
+        </div>
+      </section>
+
+      <!-- Mac app installer (one-time setup, independent of firmware version) -->
+      <section class="installer-card">
+        <div class="installer-card-body">
+          <div>
+            <p class="installer-title">Mac Installer <span class="installer-badge">macOS</span></p>
+            <p class="installer-desc">One-time setup. Download <code>gmote-installer_macOS.zip</code>, unzip, and run <code>gmote-installer.sh</code>.</p>
+          </div>
+          <a class="btn-download"
+             href="https://raw.githubusercontent.com/hector-gb/gmote-releases/main/installers/gmote-installer_macOS.zip"
+             download="gmote-installer_macOS.zip">
+            &#8595; Download
+          </a>
         </div>
       </section>
 
