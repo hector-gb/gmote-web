@@ -143,8 +143,8 @@ function onReleaseChange() {
     releaseBodyEl.classList.add('hidden');
     assetListEl.classList.add('hidden');
     buildPlaceholder?.classList.remove('hidden');
-    installerDownload?.setAttribute('aria-disabled', 'true');
-    installerVerLabel?.classList.add('hidden');
+    if (installerDownload) installerDownload.setAttribute('aria-disabled', 'true');
+    if (installerVerLabel) installerVerLabel.classList.add('hidden');
     updateFlashButton();
     return;
   }
@@ -171,11 +171,9 @@ function onReleaseChange() {
       installerDownload.removeAttribute('aria-disabled');
       installerVerLabel.textContent = release.tag;
       installerVerLabel.classList.remove('hidden');
-      installerCard.classList.add('installer-card--highlight');
     } else {
       installerDownload.setAttribute('aria-disabled', 'true');
       installerVerLabel.classList.add('hidden');
-      installerCard.classList.remove('installer-card--highlight');
     }
   }
 
