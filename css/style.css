@@ -444,11 +444,6 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
   color: var(--text-muted);
 }
 
-.installer-card--highlight {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent), 0 0 12px color-mix(in srgb, var(--accent) 25%, transparent);
-}
-
 .installer-version-match {
   font-family: var(--mono);
   font-size: 0.72rem;
