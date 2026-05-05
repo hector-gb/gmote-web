@@ -384,28 +384,13 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .log .log-info  { color: var(--accent); }
 
 /* ───────────────────────────────────────────
-   Mac installer card
+   Mac installer (step 2)
 ─────────────────────────────────────────── */
-.installer-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.5rem;
-}
-
 .installer-card-body {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-}
-
-.installer-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .installer-badge {
@@ -421,7 +406,6 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .installer-desc {
   font-size: 0.82rem;
   color: var(--text-muted);
-  margin-top: 0.2rem;
 }
 
 .installer-desc code {
@@ -449,12 +433,15 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-download:hover { border-color: var(--accent); color: var(--accent); }
 .btn-download[aria-disabled="true"] { opacity: 0.4; pointer-events: none; }
 
-.installer-card--highlight { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
-
 .installer-version-match {
   font-family: var(--mono);
   font-size: 0.72rem;
   color: var(--accent);
+}
+
+.text-muted {
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }
 
 .installer-card--highlight {

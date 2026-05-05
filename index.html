@@ -17,7 +17,7 @@
     </header>
 
     <main>
-      <!-- Step 1: Select version -->
+      <!-- Step 1: Select a release -->
       <section class="step" id="step-version">
         <div class="step-header">
           <span class="step-number">1</span>
@@ -39,23 +39,19 @@
         </div>
 
         <p id="release-body" class="release-body hidden"></p>
-
-        <div id="asset-list" class="asset-list hidden">
-          <p class="label">Choose a build:</p>
-          <div id="asset-options"></div>
-        </div>
       </section>
 
-      <!-- Mac app installer — link updates to match the selected release -->
-      <section class="installer-card" id="installer-card">
+      <!-- Step 2: Mac installer -->
+      <section class="step" id="installer-card">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <h2>Mac Installer
+            <span class="installer-badge">macOS</span>
+            <span id="installer-version-label" class="installer-version-match hidden"></span>
+          </h2>
+        </div>
         <div class="installer-card-body">
-          <div>
-            <p class="installer-title">
-              Mac Installer <span class="installer-badge">macOS</span>
-              <span id="installer-version-label" class="installer-version-match hidden"></span>
-            </p>
-            <p class="installer-desc">One-time setup. Unzip and run <code>gmote-installer.sh</code>.</p>
-          </div>
+          <p class="installer-desc">One-time setup. Unzip and run <code>gmote-installer.sh</code>.</p>
           <a class="btn-download" id="installer-download-btn"
              href="#" download="gmote-installer_macOS.zip" aria-disabled="true">
             &#8595; Download
@@ -63,10 +59,22 @@
         </div>
       </section>
 
-      <!-- Step 2: Connect & flash -->
+      <!-- Step 3: Choose a build -->
+      <section class="step" id="step-build">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <h2>Choose a build</h2>
+        </div>
+        <div id="asset-list" class="asset-list hidden">
+          <div id="asset-options"></div>
+        </div>
+        <p id="build-placeholder" class="text-muted">Select a release first.</p>
+      </section>
+
+      <!-- Step 4: Connect & flash -->
       <section class="step" id="step-connect">
         <div class="step-header">
-          <span class="step-number">2</span>
+          <span class="step-number">4</span>
           <h2>Connect &amp; Flash</h2>
         </div>
 
@@ -88,10 +96,10 @@
         <button id="btn-flash" class="btn-flash" disabled>Flash firmware</button>
       </section>
 
-      <!-- Progress / log -->
+      <!-- Step 5: Progress -->
       <section class="step" id="step-log">
         <div class="step-header">
-          <span class="step-number">3</span>
+          <span class="step-number">5</span>
           <h2>Progress</h2>
         </div>
         <div class="progress-bar-wrap hidden" id="progress-wrap">

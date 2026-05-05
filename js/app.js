@@ -65,6 +65,7 @@ const installedHashEl    = q('#installed-hash');
 const installerCard      = q('#installer-card');
 const installerDownload  = /** @type {HTMLAnchorElement} */ (q('#installer-download-btn'));
 const installerVerLabel  = q('#installer-version-label');
+const buildPlaceholder   = q('#build-placeholder');
 
 // ─── state ───────────────────────────────────────────────────────────────────
 
@@ -141,7 +142,8 @@ function onReleaseChange() {
     releaseMeta.classList.add('hidden');
     releaseBodyEl.classList.add('hidden');
     assetListEl.classList.add('hidden');
-    installerCard?.classList.remove('installer-card--highlight');
+    buildPlaceholder?.classList.remove('hidden');
+    installerDownload?.setAttribute('aria-disabled', 'true');
     installerVerLabel?.classList.add('hidden');
     updateFlashButton();
     return;
@@ -179,6 +181,8 @@ function onReleaseChange() {
 
   // Variant cards
   assetOptionsEl.innerHTML = '';
+
+  buildPlaceholder?.classList.add('hidden');
 
   if (release.assets.length === 0) {
     assetOptionsEl.innerHTML = `<p class="no-assets-msg">
