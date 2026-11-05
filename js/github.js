@@ -3,17 +3,23 @@
  * Fetches releases and their assets from a public GitHub repository.
  *
  * Configure REPO_OWNER and REPO_NAME to point at your firmware repo.
+ *
+ * Release metadata comes from releases.json at the root of the releases repo
+ * (written by gmote's publish.sh), served from raw.githubusercontent.com. The
+ * GitHub REST API is deliberately not used here: unauthenticated it allows only
+ * 60 requests/hour per IP, which users behind a shared office/VPN IP exhausted.
  */
 
 export const REPO_OWNER = 'hector-gb';
 export const REPO_NAME  = 'gmote-releases';
 
-const API_BASE = 'https://api.github.com';
+const RAW_BASE = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main`;
+const HTML_BASE = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 
 /**
  * @typedef {Object} Asset
- * @property {number} id          - GitHub asset ID
  * @property {string} name        - Filename (e.g. "code.py")
+ * @property {string} downloadUrl - Raw download URL
  * @property {number} size        - Size in bytes
  * @property {string} contentType - MIME type
  */
@@ -24,7 +30,7 @@ const API_BASE = 'https://api.github.com';
  * @property {string}      name             - Human-readable release title
  * @property {string}      publishedAt      - ISO 8601 date string
  * @property {string}      htmlUrl          - Link to the GitHub release page
- * @property {string}      body             - Release notes (raw markdown from GitHub)
+ * @property {string}      body             - Release notes (raw markdown)
  * @property {Asset[]}     assets           - Selectable .py variants (excludes boot.py)
  * @property {Asset|null}  bootAsset        - boot.py asset for this release, or null
  * @property {string|null} sourceVersionUrl - Download URL for source-sha.txt, or null
@@ -32,73 +38,50 @@ const API_BASE = 'https://api.github.com';
  */
 
 /**
- * Returns all releases for the configured repo, newest first.
- * File listings come from the Contents API using the release tag as both the
- * ref and the folder name — no release asset uploads required.
+ * Returns all releases listed in releases.json, newest first.
+ * Each release's files live in a folder named after its tag on the main branch.
  *
- * @param {number} [perPage=20]
  * @returns {Promise<Release[]>}
  */
-export async function fetchReleases(perPage = 20) {
-  const headers = { Accept: 'application/vnd.github+json' };
+export async function fetchReleases() {
+  const res = await fetch(`${RAW_BASE}/releases.json`);
+  if (!res.ok) throw new Error(`Failed to load releases.json: ${res.status} ${res.statusText}`);
 
-  const res = await fetch(
-    `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=${perPage}`,
-    { headers },
-  );
+  /** @type {{ releases: any[] }} */
+  const manifest = await res.json();
 
-  if (!res.ok) {
-    const remaining = res.headers.get('x-ratelimit-remaining');
-    if (res.status === 403 && remaining === '0') {
-      const reset = res.headers.get('x-ratelimit-reset');
-      const resetDate = reset ? new Date(Number(reset) * 1000).toLocaleTimeString() : 'soon';
-      throw new Error(`GitHub API rate limit exceeded. Resets at ${resetDate}.`);
-    }
-    throw new Error(`GitHub API error ${res.status}: ${res.statusText}`);
-  }
+  return manifest.releases.map((r) => {
+    const tag = r.tag;
+    /** @type {{ name: string, size: number }[]} */
+    const files = r.files ?? [];
+    const find = (name) => files.find((f) => f.name === name);
 
-  /** @type {any[]} */
-  const releases = await res.json();
-
-  // Fetch folder contents for each release in parallel
-  return Promise.all(releases.map(async (r) => {
-    const tag = r.tag_name;
-
-    // List files in the tag-named folder, pinned to that tag's commit
-    let files = [];
-    try {
-      const contentsRes = await fetch(
-        `${API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/contents/${tag}?ref=${tag}`,
-        { headers },
-      );
-      if (contentsRes.ok) files = await contentsRes.json();
-    } catch (_) { /* leave files empty on network error */ }
-
-    const shaFile       = files.find((f) => f.name === 'source-sha.txt');
-    const bootFile      = files.find((f) => f.name === 'boot.py');
-    const installerFile = files.find((f) => f.name === 'gmote-installer_macOS.zip');
-
+    const urlFor = (name) => `${RAW_BASE}/${tag}/${name}`;
     const toAsset = (f) => ({
       name:        f.name,
-      downloadUrl: f.download_url,
+      downloadUrl: urlFor(f.name),
       size:        f.size,
       contentType: 'text/x-python',
     });
 
+    const bootFile      = find('boot.py');
+    const shaFile       = find('source-sha.txt');
+    const installerFile = find('gmote-installer_macOS.zip');
+
     return {
       tag,
       name:        r.name || tag,
-      publishedAt: r.published_at,
-      htmlUrl:     r.html_url,
-      body:        r.body ?? '',
+      publishedAt: r.publishedAt,
+      htmlUrl:     `${HTML_BASE}/releases/tag/${tag}`,
+      body:        r.notes ?? '',
       assets: files
         .filter((f) => isPythonAsset(f.name) && f.name !== 'boot.py')
         .map(toAsset),
       bootAsset:        bootFile      ? toAsset(bootFile)              : null,
-      sourceVersionUrl: shaFile       ? shaFile.download_url           : null,
-      installerUrl:     installerFile ? installerFile.download_url     : null,
+      sourceVersionUrl: shaFile       ? urlFor(shaFile.name)           : null,
+      installerUrl:     installerFile ? urlFor(installerFile.name)     : null,
     };
-  }));
+  });
 }
 
 /**
