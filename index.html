@@ -107,6 +107,48 @@
         </div>
         <pre id="log" class="log" aria-live="polite"></pre>
       </section>
+
+      <!-- Reference: what the buttons do -->
+      <section class="step" id="reference">
+        <div class="step-header">
+          <h2>Button reference</h2>
+        </div>
+
+        <h3 class="ref-heading">During a call</h3>
+        <p class="text-muted">
+          Each button sends a hotkey that the Mac installer listens for. It brings
+          your Meet tab to the front, then performs the action. Avoid assigning
+          these hotkeys to anything else on your Mac.
+        </p>
+        <div class="ref-table-wrap">
+          <table class="ref-table">
+            <thead>
+              <tr><th>Button</th><th>Action</th><th>Hotkey sent</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Mic <span class="pin">D0</span></td><td>Mute / unmute</td><td><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>M</kbd></td></tr>
+              <tr><td>Camera <span class="pin">D1</span></td><td>Camera on / off</td><td><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>N</kbd></td></tr>
+              <tr><td>Hand <span class="pin">D2</span></td><td>Raise / lower hand</td><td><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>J</kbd></td></tr>
+              <tr><td>Leave <span class="pin">D3</span></td><td>Leave call</td><td><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="ref-heading">Held while plugging in</h3>
+        <div class="ref-table-wrap">
+          <table class="ref-table">
+            <thead>
+              <tr><th>Button</th><th>Effect</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>None</td><td>Normal use over Bluetooth. This page can flash firmware.</td></tr>
+              <tr><td>Mic <span class="pin">D0</span></td><td>The drive becomes writable from your computer, for copying files by hand. This page can't flash in this mode.</td></tr>
+              <tr><td>Camera <span class="pin">D1</span></td><td>Forgets Bluetooth pairings, to pair with a different computer. Also remove GMote from the old computer's Bluetooth settings.</td></tr>
+              <tr><td>Leave <span class="pin">D3</span></td><td>Uses USB instead of Bluetooth.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <footer>

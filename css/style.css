@@ -456,6 +456,55 @@ button:disabled { opacity: 0.45; cursor: not-allowed; }
 }
 
 /* ───────────────────────────────────────────
+   Button reference
+─────────────────────────────────────────── */
+.ref-heading {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.ref-table-wrap { overflow-x: auto; }
+
+.ref-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.ref-table th,
+.ref-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ref-table th {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.ref-table tr:last-child td { border-bottom: none; }
+.ref-table td:first-child { white-space: nowrap; }
+
+.ref-table .pin {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.ref-table kbd {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0 5px;
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+/* ───────────────────────────────────────────
    Footer
 ─────────────────────────────────────────── */
 footer {
